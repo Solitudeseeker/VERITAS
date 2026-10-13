@@ -37,18 +37,18 @@
 
 :root {
   --radius: 2px;
-  --background: oklch(0.135 0.004 240);
-  --foreground: oklch(0.95 0.006 220);
-  --card: oklch(0.19 0.008 240);
+  --background: oklch(0.125 0.009 270);
+  --foreground: oklch(0.95 0.008 265);
+  --card: oklch(0.17 0.015 270);
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.81 0.12 215);
-  --primary-foreground: oklch(0.14 0.015 230);
-  --secondary: oklch(0.23 0.012 240);
+  --primary: oklch(0.7 0.17 260);
+  --primary-foreground: oklch(0.12 0.02 265);
+  --secondary: oklch(0.22 0.035 275);
   --secondary-foreground: var(--foreground);
   --muted: var(--secondary);
-  --muted-foreground: oklch(0.72 0.01 230);
+  --muted-foreground: oklch(0.7 0.02 265);
   --accent: var(--primary);
   --accent-foreground: var(--primary-foreground);
   --destructive: oklch(0.73 0.18 8);
@@ -56,17 +56,14 @@
   --support: oklch(0.8 0.1 210);
   --violet: oklch(0.76 0.14 295);
   --unverified: oklch(0.72 0.035 255);
-  --border: oklch(0.75 0.045 220 / 20%);
-  --input: oklch(0.75 0.065 220 / 35%);
+  --border: oklch(0.7 0.1 265 / 20%);
+  --input: oklch(0.7 0.1 265 / 35%);
   --ring: var(--primary);
   --scene-blue: oklch(0.65 0.22 262);
   --scene-indigo: oklch(0.52 0.18 280);
   --scene-violet: var(--violet);
   --scene-cyan: var(--support);
-  --scene-surface: oklch(0.25 0.015 230);
-  --scene-silver: oklch(0.85 0.025 220);
-  --glow: 0 8px 35px oklch(0.6 0.1 215 / 10%);
-  --depth-shadow: 0 22px 60px oklch(0.05 0.005 240 / 35%);
+  --glow: 0 0 30px oklch(0.6 0.19 265 / 12%);
   --atmosphere-shade: linear-gradient(90deg, color-mix(in oklab, var(--background) 94%, transparent), color-mix(in oklab, var(--background) 40%, transparent) 65%, color-mix(in oklab, var(--background) 12%, transparent));
   --atmosphere-edge: linear-gradient(180deg, var(--background), transparent 18%, transparent 78%, var(--background));
   --scan-light: linear-gradient(180deg, transparent, color-mix(in oklab, var(--primary) 9%, transparent), transparent);
@@ -182,44 +179,18 @@ section[id] { scroll-margin-top: 90px; }
 .veritas-page > main, .veritas-page > footer { position: relative; }
 .atmosphere { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .atmosphere-ambient { position: fixed; z-index: -1; }
-.atmosphere-image { width: 100%; height: 100%; object-fit: cover; object-position: 70% center; opacity: .24; filter: saturate(.45); animation: atmosphere-drift 28s ease-in-out infinite alternate; }
-.atmosphere-ambient .atmosphere-image { opacity: .12; }
+.atmosphere-image { width: 100%; height: 100%; object-fit: cover; object-position: 70% center; opacity: .42; animation: atmosphere-drift 28s ease-in-out infinite alternate; }
+.atmosphere-ambient .atmosphere-image { opacity: .2; }
 .atmosphere-archive .atmosphere-image { opacity: .36; object-position: center; animation-duration: 34s; }
 .atmosphere-shade { position: absolute; inset: 0; background-image: var(--atmosphere-shade), var(--atmosphere-edge); }
 .atmosphere-scan { position: absolute; inset-inline: 0; top: -25%; height: 22%; background: var(--scan-light); animation: atmosphere-scan 18s linear infinite; opacity: .65; }
 .atmosphere-traces { position: absolute; inset: 0; }
-.atmosphere-particles { position: absolute; inset: 0; pointer-events: none; }
-.atmosphere-particles i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--support); opacity: .45; box-shadow: 0 0 7px var(--primary); animation: particle-drift 20s ease-in-out infinite; }
-.atmosphere-particles i:nth-child(3n) { width: 3px; height: 3px; background: var(--primary); }
-.atmosphere-particles i:nth-child(4n) { background: var(--violet); }
-@keyframes particle-drift { 0%, 100% { transform: translate3d(0, 25px, 0); opacity: .15; } 35% { opacity: .65; } 70% { transform: translate3d(24px, -55px, 0); opacity: .35; } }
 .atmosphere-traces i { position: absolute; width: 180px; height: 1px; background: var(--trace-light); opacity: 0; right: 12%; top: 22%; animation: atmosphere-trace 12s ease-in-out infinite; transform: rotate(-24deg); }
 .atmosphere-traces i:nth-child(2) { right: 28%; top: 64%; animation-delay: -4s; width: 120px; }
 .atmosphere-traces i:nth-child(3) { right: 6%; top: 82%; animation-delay: -8s; width: 230px; }
 @keyframes atmosphere-drift { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.09) translate3d(-1.5%, 1%, 0); } }
 @keyframes atmosphere-scan { to { top: 115%; } }
 @keyframes atmosphere-trace { 0%, 65%, 100% { opacity: 0; transform: translateX(-80px) rotate(-24deg); } 75% { opacity: .55; } 90% { opacity: 0; transform: translateX(130px) rotate(-24deg); } }
-
-/* Depth stays decorative: all form and navigation controls remain in the DOM. */
-.hero-scene canvas { position: absolute; inset: 0; }
-.scene-fallback { position: absolute; top: 18%; right: 14%; width: 260px; aspect-ratio: 1; perspective: 700px; opacity: .6; }
-.scene-fallback i { position: absolute; inset: 0; border: 1px solid var(--primary); border-radius: 50%; transform: rotateX(58deg) rotateY(-25deg); }
-.scene-fallback i:nth-child(2) { inset: 15%; transform: rotateX(-35deg) rotateY(55deg); }
-.scene-fallback i:nth-child(3) { inset: 28%; transform: rotateY(15deg); }
-.hero-scene[data-scene="ready"] .scene-fallback { display: none; }
-.network-core, .network-node, .verification-input { box-shadow: var(--depth-shadow), var(--glow); }
-.network-core { background: linear-gradient(145deg, var(--card), var(--background)); }
-.network-node { background: linear-gradient(155deg, var(--secondary), var(--card)); transition: transform .3s, border-color .3s; }
-.network-node:hover, .network-node:focus-visible { transform: translateY(-4px); }
-.btn { box-shadow: var(--glow); }
-.btn-primary:hover { transform: translateY(-2px); }
-@media (max-width: 767px) {
-  #product { min-height: 810px; padding-top: 365px; padding-bottom: 40px; }
-  #product .hero-heading { font-size: 66px; }
-  #product .eyebrow { margin-bottom: 1.25rem; }
-  #product .reveal.mt-12 { margin-top: 2rem; gap: 1.5rem; }
-  .scene-fallback { top: 8%; right: calc(50% - 130px); }
-}
 @media (max-width: 767px) {
   .atmosphere-image { object-position: 64% center; opacity: .3; }
   .atmosphere-ambient .atmosphere-image { opacity: .14; }

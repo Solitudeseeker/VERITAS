@@ -15,5 +15,4 @@
 - Accept text, HTTP(S) URLs, and validated JPG/PNG/WebP images in the existing verification form; image previews remain local and URL/image results must explicitly show unassessed states until research is connected.
 - Share evidence selection between the readable result and the existing evidence map through route state so keyboard, pointer, and touch selection remain synchronized.
 - Define visual colors in global semantic tokens, including Three.js colors resolved from those tokens, so the scene and interface stay consistent.
-- Keep the existing dynamically imported Three.js renderer for the decorative evidence sculpture; use local studio reflections, pause rendering offscreen or in hidden tabs, and render a static fallback when WebGL is unavailable to preserve the original architecture without external asset dependencies.
 - Use the shared decorative BackgroundAtmosphere layer for bundled imagery and CSS light motion beneath existing content; it must ignore pointer input and honor reduced motion to preserve usability.

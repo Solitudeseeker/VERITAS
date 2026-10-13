@@ -190,7 +190,7 @@ function Result({ claim, submission, outcome, selected, onSelect }: { claim: str
     : "VERITAS has no connected research service for this input. There is no evidence available, so it would be misleading to label it true or false.";
   return <div className="border-t pt-12" aria-live="polite">
     <p className="eyebrow text-primary">VERIFICATION RESULT</p>
-    {failed && <div role="alert" className="mt-5 text-destructive"><p>Verification request failed: {outcome?.error}</p>{!sample && <p className="mt-1">No verdict was produced.</p>}</div>}
+    {failed && <div role="alert" className="mt-5 text-sm text-muted-foreground"><p>Verification request failed: {outcome?.error}</p>{!sample && <p className="mt-1">No verdict was produced.</p>}</div>}
     <div className="verdict-in mt-7 grid items-end gap-8 lg:grid-cols-[1fr_auto]">
       <h3 className={`display verdict-label ${VERDICT_TONE[verdict] ?? "text-unverified"}`}>{verdict}</h3>
       <div><p className="eyebrow">{response ? "CLAIMS CHECKED" : "CONFIDENCE"}</p><p className="display mt-3 text-7xl">{confidence}</p></div>

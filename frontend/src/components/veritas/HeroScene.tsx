@@ -1,186 +1,178 @@
 import { useEffect, useRef } from "react";
 import type * as T from "three";
 
-/** Decorative, locally generated evidence sculpture; never verification data. */
 export function HeroScene({ variant = "hero" }: { variant?: "hero" | "cta" }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let disposed = false;
     let cleanup = () => {};
-    const el = ref.current;
-    if (!el) return;
     (async () => {
       const THREE = await import("three");
-      if (disposed) return;
-      const mobile = el.clientWidth < 768;
-      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      const colors = new Map<string, T.Color>();
+      const el = ref.current;
+      if (!el || disposed) return;
+      const mobile = window.innerWidth < 768;
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const tokens = getComputedStyle(el);
       const color = (token: string) => {
-        const cached = colors.get(token);
-        if (cached) return cached;
         const probe = document.createElement("span");
-        probe.style.color = getComputedStyle(el).getPropertyValue(token);
+        probe.style.color = tokens.getPropertyValue(token);
         el.appendChild(probe);
         const resolved = getComputedStyle(probe).color;
         probe.remove();
+        // Canvas converts modern CSS colors to an sRGB string Three.js understands.
         const ctx = document.createElement("canvas").getContext("2d");
         if (!ctx) return new THREE.Color();
         ctx.fillStyle = resolved;
         ctx.fillRect(0, 0, 1, 1);
         const [r = 0, g = 0, b = 0] = ctx.getImageData(0, 0, 1, 1).data;
-        const result = new THREE.Color().setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace);
-        colors.set(token, result);
-        return result;
+        return new THREE.Color().setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace);
       };
-      const cyan = color("--scene-cyan");
-      const blue = color("--scene-blue");
-      const silver = color("--scene-silver");
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.25 : 1.5));
+      const ivory = color("--scene-cyan");
+      const amber = color("--scene-blue");
+      const violet = color("--scene-violet");
+      const indigo = color("--scene-indigo");
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(el.clientWidth, el.clientHeight);
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
       el.appendChild(renderer.domElement);
-      el.dataset['scene'] = "ready";
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(38, el.clientWidth / el.clientHeight, .1, 60);
-      camera.position.set(0, 0, 13);
-      const geometries: T.BufferGeometry[] = [];
-      const materials: T.Material[] = [];
-      const geometry = <G extends T.BufferGeometry>(g: G) => { geometries.push(g); return g; };
-      const material = <M extends T.Material>(m: M) => { materials.push(m); return m; };
+      scene.fog = new THREE.Fog(color("--background"), 8, 22);
+      const camera = new THREE.PerspectiveCamera(40, el.clientWidth / el.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 12);
 
-      // Local studio reflections: no network textures or HDR dependencies.
-      const studio = new THREE.Scene();
-      const softbox = geometry(new THREE.PlaneGeometry(12, 5));
-      const bright = material(new THREE.MeshBasicMaterial({ color: silver, side: THREE.DoubleSide }));
-      [[0, 5, 0], [-5, 1, 2], [4, -2, 3]].forEach(([x, y, z]) => {
-        const panel = new THREE.Mesh(softbox, bright);
-        panel.position.set(x ?? 0, y ?? 0, z ?? 0);
-        panel.lookAt(0, 0, 0);
-        studio.add(panel);
-      });
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const environment = pmrem.fromScene(studio, .08, .1, 30);
-      scene.environment = environment.texture;
-      pmrem.dispose();
-      scene.add(new THREE.AmbientLight(silver, .8));
-      const key = new THREE.DirectionalLight(silver, 3);
-      key.position.set(-3, 5, 5);
+      const root = new THREE.Group();
+      scene.add(root);
+      scene.add(new THREE.AmbientLight(ivory, 0.4));
+      const key = new THREE.PointLight(violet, 30, 30);
+      key.position.set(4, 3, 6);
       scene.add(key);
-      const rim = new THREE.PointLight(cyan, 45, 18);
-      rim.position.set(3, 2, 4);
-      scene.add(rim);
 
-      const sculpture = new THREE.Group();
-      sculpture.position.set(variant === "hero" && !mobile ? 3.3 : 0, mobile ? 1.7 : .55, 0);
-      sculpture.scale.setScalar(mobile ? .57 : variant === "cta" ? .8 : 1);
-      scene.add(sculpture);
-      const nucleus = new THREE.Mesh(
-        geometry(new THREE.IcosahedronGeometry(.45, 0)),
-        material(new THREE.MeshStandardMaterial({ color: blue, flatShading: true, emissive: blue, emissiveIntensity: 1.1 })),
-      );
-      sculpture.add(nucleus);
-      const shell = new THREE.LineSegments(
-        geometry(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(1.75, 1))),
-        material(new THREE.LineBasicMaterial({ color: cyan, transparent: true, opacity: .28 })),
-      );
-      sculpture.add(shell);
-      const innerRing = new THREE.Mesh(
-        geometry(new THREE.TorusGeometry(.94, .018, 8, 100)),
-        material(new THREE.MeshBasicMaterial({ color: cyan })),
-      );
-      innerRing.rotation.set(.35, -.45, -.4);
-      sculpture.add(innerRing);
-      const orbits: T.Group[] = [];
-      for (let i = 0; i < 3; i++) {
-        const group = new THREE.Group();
-        group.rotation.set(.65 + i * .6, i * .55, -.35 + i * .7);
-        const radius = 2.25 + i * .43;
-        const arc = new THREE.Mesh(
-          geometry(new THREE.TorusGeometry(radius, .009, 5, 120, Math.PI * 1.65)),
-          material(new THREE.MeshBasicMaterial({ color: i === 1 ? silver : cyan, transparent: true, opacity: .55 })),
-        );
-        group.add(arc);
-        const marker = new THREE.Mesh(geometry(new THREE.SphereGeometry(.055, 12, 8)), material(new THREE.MeshBasicMaterial({ color: cyan })));
-        marker.position.set(radius, 0, 0);
-        group.add(marker);
-        sculpture.add(group);
-        orbits.push(group);
+      // Nodes: claim core, evidence ring, outer sources
+      const nodes: T.Vector3[] = [new THREE.Vector3(0, 0, 0)];
+      const count = variant === "cta" ? 18 : mobile ? 22 : 38;
+      for (let i = 0; i < count; i++) {
+        const layer = i < count / 3 ? 2.2 : 4.2;
+        const phi = Math.acos(1 - (2 * (i + 0.5)) / count);
+        const th = Math.PI * (1 + Math.sqrt(5)) * i;
+        nodes.push(new THREE.Vector3(
+          layer * Math.sin(phi) * Math.cos(th),
+          layer * Math.sin(phi) * Math.sin(th) * 0.8,
+          layer * Math.cos(phi),
+        ));
       }
-      // Small spherical evidence nodes preserve the claim → source structure.
-      const nodes: T.Vector3[] = [];
-      const nodeGeometry = geometry(new THREE.SphereGeometry(.045, 10, 8));
-      const nodeMaterial = material(new THREE.MeshBasicMaterial({ color: silver }));
-      const edges: number[] = [];
-      for (let i = 0; i < 20; i++) {
-        const phi = Math.acos(1 - 2 * (i + .5) / 20);
-        const theta = i * Math.PI * (1 + Math.sqrt(5));
-        const p = new THREE.Vector3(1.75 * Math.sin(phi) * Math.cos(theta), 1.75 * Math.sin(phi) * Math.sin(theta), 1.75 * Math.cos(phi));
-        nodes.push(p);
-        const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
-        node.position.copy(p);
-        sculpture.add(node);
-        if (i % 3 === 0) edges.push(0, 0, 0, p.x, p.y, p.z);
-      }
-      sculpture.add(new THREE.LineSegments(
-        geometry(new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(edges, 3))),
-        material(new THREE.LineBasicMaterial({ color: blue, transparent: true, opacity: .25 })),
-      ));
-
-      const mouse = new THREE.Vector2();
-      const onMove = (e: PointerEvent) => {
-        if (motion.matches) return;
-        const rect = el.getBoundingClientRect();
-        mouse.set((e.clientX - rect.left) / rect.width - .5, (e.clientY - rect.top) / rect.height - .5);
-      };
-      const resize = new ResizeObserver(() => {
-        if (!el.clientWidth || !el.clientHeight) return;
-        camera.aspect = el.clientWidth / el.clientHeight; camera.updateProjectionMatrix();
-        renderer.setSize(el.clientWidth, el.clientHeight);
-        render();
+      const geos: T.BufferGeometry[] = [];
+      const mats: T.Material[] = [];
+      const core = new THREE.Mesh(
+        (geos[geos.length] = new THREE.IcosahedronGeometry(0.45, 0)),
+        (mats[mats.length] = new THREE.MeshStandardMaterial({ color: amber, flatShading: true, emissive: amber, emissiveIntensity: 1.1 })),
+      );
+      root.add(core);
+      const nodeGeo = new THREE.OctahedronGeometry(0.09, 0);
+      const nodeMat = new THREE.MeshStandardMaterial({ color: violet, flatShading: true, emissive: indigo, emissiveIntensity: 0.3 });
+      geos.push(nodeGeo); mats.push(nodeMat);
+      nodes.slice(1).forEach((p, i) => {
+        const m = new THREE.Mesh(nodeGeo, i % 7 === 0 ? (core.material as T.Material) : nodeMat);
+        m.position.copy(p);
+        m.scale.setScalar(i % 5 === 0 ? 1.8 : 1);
+        root.add(m);
       });
+      // Edges
+      const pts: number[] = [];
+      nodes.forEach((a, i) => {
+        if (i === 0) return;
+        if (a.length() < 3) pts.push(0, 0, 0, a.x, a.y, a.z);
+        nodes.forEach((b, j) => { if (j > i && a.distanceTo(b) < 2.6) pts.push(a.x, a.y, a.z, b.x, b.y, b.z); });
+      });
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: ivory, transparent: true, opacity: 0.18 });
+      geos.push(lineGeo); mats.push(lineMat);
+      root.add(new THREE.LineSegments(lineGeo, lineMat));
+      // Transparent layers (evidence planes)
+      for (let i = 0; i < 3; i++) {
+        const g = new THREE.RingGeometry(2.2 + i * 1.1, 2.21 + i * 1.1, 96);
+        const m = new THREE.MeshBasicMaterial({ color: i === 1 ? violet : ivory, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+        geos.push(g); mats.push(m);
+        const r = new THREE.Mesh(g, m);
+        r.rotation.x = Math.PI / 2 + i * 0.3; r.rotation.y = i * 0.5;
+        r.userData['spin'] = 0.0008 * (i + 1) * (i % 2 ? -1 : 1);
+        root.add(r);
+      }
+      // Fragments
+      const fragGeo = new THREE.PlaneGeometry(0.35, 0.22);
+      const fragMat = new THREE.MeshBasicMaterial({ color: ivory, transparent: true, opacity: 0.08, side: THREE.DoubleSide });
+      geos.push(fragGeo); mats.push(fragMat);
+      for (let i = 0; i < (mobile ? 6 : 14); i++) {
+        const f = new THREE.Mesh(fragGeo, fragMat);
+        f.position.set((Math.random() - .5) * 10, (Math.random() - .5) * 6, (Math.random() - .5) * 6);
+        f.rotation.set(Math.random() * 3, Math.random() * 3, 0);
+        root.add(f);
+      }
+      // Particles
+      const pc = mobile ? 250 : 700;
+      const pp = new Float32Array(pc * 3);
+      for (let i = 0; i < pc * 3; i++) pp[i] = (Math.random() - 0.5) * 18;
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute("position", new THREE.BufferAttribute(pp, 3));
+      const pMat = new THREE.PointsMaterial({ color: ivory, size: 0.02, transparent: true, opacity: 0.5 });
+      geos.push(pGeo); mats.push(pMat);
+      const particles = new THREE.Points(pGeo, pMat);
+      scene.add(particles);
+
+      root.position.x = variant === "hero" && !mobile ? 2.6 : 0;
+
+      const mouse = { x: 0, y: 0 };
+      const onMove = (e: PointerEvent) => {
+        mouse.x = e.clientX / window.innerWidth - 0.5;
+        mouse.y = e.clientY / window.innerHeight - 0.5;
+      };
+      const onResize = () => {
+        camera.aspect = el.clientWidth / el.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(el.clientWidth, el.clientHeight);
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("resize", onResize);
+
       let visible = true;
+      const io = new IntersectionObserver(([e]) => (visible = !!e?.isIntersecting));
+      io.observe(el);
+
       let raf = 0;
-      let previous = 0;
-      let elapsed = 0;
-      const render = () => { camera.lookAt(mobile ? 0 : sculpture.position.x * .5, 0, 0); renderer.render(scene, camera); };
-      const tick = (now: number) => {
-        raf = 0;
-        if (disposed || !visible || document.hidden) return;
-        const delta = Math.min(previous ? (now - previous) / 1000 : 0, .05);
-        previous = now;
-        if (!motion.matches) {
-          elapsed += delta;
-          shell.rotation.y = elapsed * .07;
-          shell.rotation.x = elapsed * .025;
-          orbits.forEach((orbit, i) => { orbit.rotation.z += delta * .06 * (i % 2 ? -1 : 1); });
-          sculpture.rotation.y += (mouse.x * .25 - sculpture.rotation.y) * (1 - Math.exp(-3 * delta));
-          sculpture.rotation.x += (mouse.y * .14 - sculpture.rotation.x) * (1 - Math.exp(-3 * delta));
-          camera.position.x += (mouse.x * .5 - camera.position.x) * (1 - Math.exp(-2 * delta));
-          camera.position.y += (-mouse.y * .35 - camera.position.y) * (1 - Math.exp(-2 * delta));
-        }
-        render();
-        if (!motion.matches) raf = requestAnimationFrame(tick);
+      const clock = new THREE.Clock();
+      const tick = () => {
+        raf = requestAnimationFrame(tick);
+        if (!visible) return;
+        const t = clock.getElapsedTime();
+        const s = reduced ? 0 : 1;
+        root.rotation.y = t * 0.06 * s + mouse.x * 0.4;
+        root.rotation.x = Math.sin(t * 0.1) * 0.1 * s + mouse.y * 0.25;
+        core.rotation.y = t * 0.4 * s;
+        core.scale.setScalar(1 + Math.sin(t * 1.5) * 0.06 * s);
+        root.children.forEach((c) => { if (c.userData['spin']) c.rotation.z += c.userData['spin'] * s; });
+        particles.rotation.y = t * 0.01 * s;
+        camera.position.x += (mouse.x * 1.2 - camera.position.x) * 0.03;
+        camera.position.y += (-mouse.y * 0.8 - camera.position.y) * 0.03;
+        camera.lookAt(root.position.x * 0.5, 0, 0);
+        renderer.render(scene, camera);
       };
-      const resume = () => { cancelAnimationFrame(raf); previous = 0; if (visible && !document.hidden) raf = requestAnimationFrame(tick); };
-      const observer = new IntersectionObserver(([entry]) => { visible = Boolean(entry?.isIntersecting); resume(); });
-      observer.observe(el); resize.observe(el);
-      window.addEventListener("pointermove", onMove, { passive: true });
-      document.addEventListener("visibilitychange", resume);
-      motion.addEventListener("change", resume);
-      render(); resume();
+      tick();
+
       cleanup = () => {
-        cancelAnimationFrame(raf); observer.disconnect(); resize.disconnect();
+        cancelAnimationFrame(raf);
+        io.disconnect();
         window.removeEventListener("pointermove", onMove);
-        document.removeEventListener("visibilitychange", resume);
-        motion.removeEventListener("change", resume);
-        geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose());
-        environment.dispose(); renderer.dispose(); renderer.domElement.remove();
+        window.removeEventListener("resize", onResize);
+        geos.forEach((g) => g.dispose());
+        mats.forEach((m) => m.dispose());
+        renderer.dispose();
+        renderer.domElement.remove();
       };
-    })().catch(() => { if (!disposed) el.dataset['scene'] = "fallback"; });
+    })();
     return () => { disposed = true; cleanup(); };
   }, [variant]);
 
-  return <div ref={ref} className="hero-scene absolute inset-0 pointer-events-none" aria-hidden="true"><div className="scene-fallback"><i /><i /><i /></div></div>;
+  return <div ref={ref} className="absolute inset-0" aria-hidden />;
 }
