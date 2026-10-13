@@ -2,14 +2,14 @@
 
 **Combating misinformation through AI, evidence, and digital trust.**
 
-VERITAS is an AI-powered claim verification platform that analyzes factual claims from text, URLs, and screenshots. It retrieves relevant web evidence and uses Retrieval-Augmented Generation (RAG) and Google Gemini to evaluate claims and provide evidence-based verdicts with source citations.
+VERITAS is an AI-powered claim verification platform that analyzes factual claims from text, URLs, and screenshots. It retrieves relevant web evidence and uses Retrieval-Augmented Generation (RAG) and Google Gemini, Groq and Tavily to evaluate claims and provide evidence-based verdicts with source citations.
 
 Developed by **Team Code Alchemists** for the **Digital Trust & Online Information Verification** hackathon.
 
 ## ✨ Key Features
 
 - **Multi-Input Verification:** Submit text, URLs, or screenshots.
-- **AI-Powered Analysis:** Extract checkable claims using Google Gemini.
+- **AI-Powered Analysis:** Extract checkable claims using Google Gemini, Tavily and Groq.
 - **Web Evidence Retrieval:** Search and retrieve relevant information from online sources.
 - **RAG Pipeline:** Retrieve relevant evidence to support claim evaluation.
 - **Evidence-Based Verdicts:** Classify claims as SUPPORTED, CONTRADICTED, MISLEADING, or UNVERIFIED.
@@ -32,6 +32,7 @@ Developed by **Team Code Alchemists** for the **Digital Trust & Online Informati
 
 ### AI and Information Retrieval
 - Google Gemini API
+- Groq API
 - Tavily
 - Retrieval-Augmented Generation (RAG)
 - Vector embeddings and cosine similarity
@@ -41,11 +42,11 @@ Developed by **Team Code Alchemists** for the **Digital Trust & Online Informati
 ## 📁 Project Structure
 
 ```text
-VERITAS/
-├── frontend/
-├── backend/
-├── docs/
-├── .gitignore
+Code Alchemists
+├──VERITAS/
+|   ├── frontend/
+|   ├── backend/
+|   └── .gitignore
 └── README.md
 ```
 
@@ -59,6 +60,7 @@ The frontend contains the user interface, while the backend handles claim extrac
 - Node.js and npm
 - Python 3.11–3.13
 - Google Gemini API key
+- Groq API key (optional if Gemini API is exhusted)
 - Tavily API key (optional if using an alternative search provider)
 - Tesseract OCR installed for screenshot verification
 
