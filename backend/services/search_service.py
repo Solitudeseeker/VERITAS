@@ -1,7 +1,7 @@
-"""Web search that does not depend on Gemini's Google Search grounding quota.
+"""Web search that does not depend on the LLM's own search quota.
 
-Providers (SEARCH_PROVIDER): auto | tavily | ddgs | gemini
-  auto   -> tavily if TAVILY_API_KEY is set, else ddgs if the package is installed, else gemini grounding
+Providers (SEARCH_PROVIDER): auto | tavily | ddgs | grok
+  auto   -> tavily if TAVILY_API_KEY is set, else ddgs if the package is installed, else grok web_search
   tavily -> https://tavily.com (free plan, needs a key)
   ddgs   -> keyless DuckDuckGo search (pip install ddgs)
 """
@@ -32,7 +32,7 @@ def active_provider() -> str:
     if p == "auto":
         if settings.TAVILY_API_KEY:
             return "tavily"
-        return "ddgs" if _ddgs_available() else "gemini"
+        return "ddgs" if _ddgs_available() else "grok"
     return p
 
 
@@ -67,7 +67,12 @@ def search(query: str, n: int = 5) -> list[dict]:
     query = " ".join(query.split())[:300]
     provider = active_provider()
     if provider == "tavily":
-        return _tavily(query, n)
+        try:
+            return _tavily(query, n)
+        except SearchError:
+            if _ddgs_available():  # Tavily down / out of quota: keep working with keyless DuckDuckGo
+                return _ddgs(query, n)
+            raise
     if provider == "ddgs":
         return _ddgs(query, n)
     raise SearchError("No external search provider configured.")

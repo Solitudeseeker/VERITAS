@@ -7,7 +7,7 @@ from ..database.db import get_db
 from ..database.models import Claim, Verification
 from ..schemas import HistoryItem, TextRequest, UrlRequest, VerificationOut
 from ..services import ocr_service, source_service
-from ..services.gemini_service import AIServiceError
+from ..services.grok_service import AIServiceError
 from ..services.verification_service import NoClaimsError, run_verification
 
 router = APIRouter(prefix="/api")
@@ -35,8 +35,8 @@ def _load(db: Session, vid: int) -> Verification:
 
 @router.get("/health")
 def health():
-    return {"ok": True, "model": settings.GEMINI_MODEL, "fallback_model": settings.GEMINI_FALLBACK_MODEL or None,
-            "mock": settings.MOCK_AI, "has_key": bool(settings.GEMINI_API_KEY)}
+    return {"ok": True, "model": settings.GROK_MODEL, "fallback_model": settings.GROK_FALLBACK_MODEL or None,
+            "mock": settings.MOCK_AI, "has_key": bool(settings.GROK_API_KEY)}
 
 
 @router.post("/verify/text", response_model=VerificationOut)

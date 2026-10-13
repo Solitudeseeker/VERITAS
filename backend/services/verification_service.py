@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database.models import Claim, Source, Verification
-from . import gemini_service as ai
+from . import grok_service as ai
 
 
 class NoClaimsError(Exception):
@@ -14,17 +14,18 @@ class NoClaimsError(Exception):
 
 
 def overall_verdict(statuses: list[str]) -> str:
+    """Majority-threshold verdict (denominator = all claims; integer maths, so no rounding issues):
+    >= 50% SUPPORTED -> SUPPORTED; else >= 75% not-supported -> MISLEADING; else UNVERIFIED. Never PARTIAL."""
     n = len(statuses)
-    c = lambda s: statuses.count(s)  # noqa: E731
-    if c("CONTRADICTED") == n:
-        return "CONTRADICTED"
-    if c("CONTRADICTED") or c("MISLEADING"):
-        return "MISLEADING"
-    if c("SUPPORTED") == n:
-        return "SUPPORTED"
-    if c("UNVERIFIED") == n:
+    if n == 0:
         return "UNVERIFIED"
-    return "PARTIAL"
+    supported = statuses.count("SUPPORTED")
+    flagged = sum(statuses.count(s) for s in ("UNVERIFIED", "MISLEADING", "CONTRADICTED"))
+    if supported * 2 >= n:
+        return "SUPPORTED"
+    if flagged * 4 >= n * 3:
+        return "MISLEADING"
+    return "UNVERIFIED"
 
 
 def build_summary(statuses: list[str]) -> str:

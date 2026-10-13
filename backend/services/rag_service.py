@@ -20,6 +20,11 @@ _write_lock = threading.Lock()
 MAX_SCAN = 5000
 
 
+def _model_name(embed) -> str:
+    fn = getattr(embed, "model_name", None)
+    return fn() if callable(fn) else settings.EMBED_MODEL
+
+
 def chunk_text(text: str, size: int | None = None, overlap: int = 150) -> list[str]:
     size = size or settings.RAG_CHUNK_CHARS
     text = " ".join((text or "").split())
@@ -61,10 +66,11 @@ def add_documents(docs: list[dict], embed: EmbedFn) -> int:
     if not pending:
         return 0
     vectors = embed([p["text"] for p in pending], "RETRIEVAL_DOCUMENT")
+    model_name = _model_name(embed)  # read AFTER embedding: the embedder may have fallen back to local
     with _write_lock, SessionLocal() as db:
         for p, v in zip(pending, vectors):
             db.add(KBChunk(url=p["url"][:2048], title=(p.get("title") or "Source")[:512], text=p["text"],
-                           text_hash=p["text_hash"], kind=p["kind"], embed_model=settings.EMBED_MODEL,
+                           text_hash=p["text_hash"], kind=p["kind"], embed_model=model_name,
                            embedding=json.dumps([round(float(x), 6) for x in v])))
         try:
             db.commit()
@@ -77,12 +83,12 @@ def add_documents(docs: list[dict], embed: EmbedFn) -> int:
 def retrieve(query: str, embed: EmbedFn, k: int | None = None, fresh_urls: set[str] | None = None) -> list[dict]:
     k = k or settings.RAG_TOP_K
     fresh_urls = fresh_urls or set()
+    q = np.asarray(embed([query], "RETRIEVAL_QUERY")[0], dtype=np.float32)  # embed first, then pick matching rows
     with SessionLocal() as db:
-        rows = db.scalars(select(KBChunk).where(KBChunk.embed_model == settings.EMBED_MODEL)
+        rows = db.scalars(select(KBChunk).where(KBChunk.embed_model == _model_name(embed))
                           .order_by(KBChunk.id.desc()).limit(MAX_SCAN)).all()
     if not rows:
         return []
-    q = np.asarray(embed([query], "RETRIEVAL_QUERY")[0], dtype=np.float32)
     m = np.asarray([json.loads(r.embedding) for r in rows], dtype=np.float32)
     denom = np.linalg.norm(m, axis=1) * (np.linalg.norm(q) or 1.0)
     scores = (m @ q) / np.where(denom == 0, 1.0, denom)
