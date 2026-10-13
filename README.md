@@ -45,7 +45,7 @@ VERITAS/
 ├── backend/
 ├── docs/
 ├── .gitignore
-├── README.md
+└── README.md
 ```
 
 The frontend contains the user interface, while the backend handles claim extraction, evidence retrieval, AI evaluation, and report storage.
