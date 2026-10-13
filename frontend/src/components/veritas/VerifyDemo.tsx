@@ -155,59 +155,15 @@ export function VerifyDemo({ onResult, selected, onSelect }: { onResult: (claim:
               <Button type="button" variant="link" disabled={running} onClick={() => { setMode("text"); setClaim(EXAMPLE_CLAIM); setDone(null); setStep(-1); }} className="h-auto p-0 text-sm">Try the sample claim →</Button>
             </div>
           </form>
-          <ol
-            className="space-y-6 md:col-span-4 md:col-start-9"
-            aria-label="Verification progress"
-            aria-live="polite"
-            aria-busy={running}
-          >
+          <ol className="space-y-6 md:col-span-4 md:col-start-9" aria-label="Verification progress" aria-live="polite" aria-busy={running}>
             {STEPS.map((s, i) => {
               const state = done || step > i ? "done" : step === i ? "active" : "";
-
-              return (
-                <li
-                  key={s}
-                  className={`transition-opacity duration-500 ${
-                    state ? "opacity-100" : "opacity-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-4 font-mono text-xs uppercase">
-                    <span className="text-primary">0{i + 1}</span>
-
-                    <span className="flex-1">
-                      {s}
-                      {state === "active" && <span className="pulse">…</span>}
-                    </span>
-
-                    <span className="text-support">
-                      {state === "done" ? "✓" : ""}
-                    </span>
-                  </div>
-
-                  <div className={`bar mt-3 ${state}`}>
-                    <i />
-                  </div>
-                  {/* Loading indicator for the final verdict stage */}
-                  {i === 4 && running && step === 4 && (
-                    <div
-                      role="status"
-                      className="mt-4 flex items-center gap-3 text-xs text-muted-foreground"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-muted border-t-primary"
-                      />
-
-                      <span className="animate-pulse">
-                        Investigating sources and preparing your verdict...
-                      </span>
-                    </div>
-                  )}
-                </li>
-              );
+              return <li key={s} className={`transition-opacity duration-500 ${state ? "opacity-100" : "opacity-50"}`}>
+                <div className="flex items-center gap-4 font-mono text-xs uppercase"><span className="text-primary">0{i + 1}</span><span className="flex-1">{s}{state === "active" && <span className="pulse">…</span>}</span><span className="text-support">{state === "done" ? "✓" : ""}</span></div>
+                <div className={`bar mt-3 ${state}`}><i /></div>
+              </li>;
             })}
           </ol>
-
         </div>
         {done !== null && submitted && <div ref={resultRef} className="mt-24 scroll-mt-28"><Result claim={done} submission={submitted} outcome={outcome} selected={selected} onSelect={onSelect} /></div>}
       </div>
