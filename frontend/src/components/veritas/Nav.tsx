@@ -23,10 +23,11 @@ export function Nav() {
     <header className={`nav fixed inset-x-0 top-0 z-50 ${scrolled || open ? "scrolled" : ""}`}>
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5 md:px-10">
         <Link to="/" aria-label="VERITAS home" className="flex items-center gap-2.5 font-serif text-2xl">
-          <svg aria-hidden viewBox="0 0 64 64" className="h-6 w-6 text-primary" fill="none">
-            <path d="M32 6 L51 13 V31 C51 42.5 43 51.5 32 58 C21 51.5 13 42.5 13 31 V13 Z" fill="currentColor" fillOpacity="0.16" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
-            <path d="M23 31.5 L29.5 38 L41.5 25" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <img
+            src="/veritas-logo.png"
+            alt="VERITAS Logo"
+            className="h-6 w-6 object-contain"
+          />
           VERITAS
         </Link>
         <nav aria-label="Main navigation" className="hidden gap-10 md:flex">
