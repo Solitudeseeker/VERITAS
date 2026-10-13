@@ -32,6 +32,7 @@ Developed by **Team Code Alchemists** for the **Digital Trust & Online Informati
 
 ### AI and Information Retrieval
 - Google Gemini API
+- Tavily
 - Retrieval-Augmented Generation (RAG)
 - Vector embeddings and cosine similarity
 - Tavily Search API / DuckDuckGo
