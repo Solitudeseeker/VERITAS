@@ -7,6 +7,10 @@
 node_modules/
 .venv/
 venv/
+.next/
+.tanstack/
+.output/
+.wrangler/
 
 # Python cache
 __pycache__/
