@@ -112,7 +112,13 @@ export function VerifyDemo({ onResult, selected, onSelect }: { onResult: (claim:
   return (
     <section id="verify" className="border-t px-6 py-24 md:px-10 md:py-32">
       <div className="mx-auto max-w-[1600px]">
-        <p className="eyebrow reveal text-primary">VERITAS / Investigation</p>
+        <div className="eyebrow reveal mb-4 flex items-center gap-3 text-primary">
+          <span className="status-dot" aria-hidden="true" />
+          <span>VERITAS / Investigation</span>
+          <span className="ml-auto text-muted-foreground">
+            TEXT · URL · IMAGE
+          </span>
+        </div>
         <h1 className="display verify-heading reveal mt-6">VERIFY A CLAIM</h1>
         <p className="reveal mt-8 max-w-xl text-lg text-muted-foreground">Paste a statement, headline, or claim and let VERITAS investigate it.</p>
         <div className="mt-12 grid gap-12 md:grid-cols-12">
@@ -155,54 +161,78 @@ export function VerifyDemo({ onResult, selected, onSelect }: { onResult: (claim:
               <Button type="button" variant="link" disabled={running} onClick={() => { setMode("text"); setClaim(EXAMPLE_CLAIM); setDone(null); setStep(-1); }} className="h-auto p-0 text-sm">Try the sample claim →</Button>
             </div>
           </form>
+
           <ol
-            className="space-y-6 md:col-span-4 md:col-start-9"
+            className="investigation-timeline space-y-7 md:col-span-4 md:col-start-9"
             aria-label="Verification progress"
             aria-live="polite"
             aria-busy={running}
           >
-            {STEPS.map((s, i) => {
-              const state = done || step > i ? "done" : step === i ? "active" : "";
+            {STEPS.map((stage, index) => {
+              const isDone = done !== null || step > index;
+              const isActive = !isDone && step === index;
+              const state = isDone ? "done" : isActive ? "active" : "pending";
 
               return (
                 <li
-                  key={s}
-                  className={`transition-opacity duration-500 ${
-                    state ? "opacity-100" : "opacity-50"
-                  }`}
+                  key={stage}
+                  className={`investigation-stage ${state}`}
                 >
-                  <div className="flex items-center gap-4 font-mono text-xs uppercase">
-                    <span className="text-primary">0{i + 1}</span>
-
-                    <span className="flex-1">
-                      {s}
-                      {state === "active" && <span className="pulse">…</span>}
-                    </span>
-
-                    <span className="text-support">
-                      {state === "done" ? "✓" : ""}
-                    </span>
-                  </div>
-
-                  <div className={`bar mt-3 ${state}`}>
-                    <i />
-                  </div>
-                  {/* Loading indicator for the final verdict stage */}
-                  {i === 4 && running && step === 4 && (
-                    <div
-                      role="status"
-                      className="mt-4 flex items-center gap-3 text-xs text-muted-foreground"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-muted border-t-primary"
-                      />
-
-                      <span className="animate-pulse">
-                        Investigating sources and preparing your verdict...
+                  <span
+                    className="investigation-marker"
+                    aria-hidden="true"
+                  >
+                    {isDone ? (
+                      <span className="stage-check">✓</span>
+                    ) : isActive ? (
+                      <span className="stage-spinner" />
+                    ) : (
+                      <span className="stage-number">
+                        {String(index + 1).padStart(2, "0")}
                       </span>
+                    )}
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-mono text-xs uppercase tracking-wider">
+                        {stage}
+                      </p>
+
+                      {isActive && (
+                        <span className="stage-live-label">
+                          ACTIVE
+                        </span>
+                      )}
+
+                      {isDone && (
+                        <span className="stage-done-label">
+                          COMPLETE
+                        </span>
+                      )}
                     </div>
-                  )}
+
+                    <div
+                      className="stage-progress-track mt-4"
+                      aria-hidden="true"
+                    >
+                      <span className="stage-progress-fill" />
+                    </div>
+
+                    {index === STEPS.length - 1 &&
+                      running &&
+                      isActive && (
+                        <div
+                          role="status"
+                          className="mt-4 flex items-center gap-3 text-xs text-muted-foreground"
+                        >
+                          <span className="stage-spinner stage-spinner-small" />
+                          <span>
+                            Investigating sources and preparing your verdict...
+                          </span>
+                        </div>
+                      )}
+                  </div>
                 </li>
               );
             })}
@@ -232,21 +262,31 @@ function Result({ claim, submission, outcome, selected, onSelect }: { claim: str
     : sample ? "The sample evidence points to lower lifetime emissions for electric vehicles, even though making their batteries produces more emissions at first. Electricity from coal can narrow that benefit. The claim takes a limited case and presents it as true for all electric vehicles."
     : failed ? "The VERITAS backend could not be reached or returned an error, so no verdict was produced."
     : "VERITAS has no connected research service for this input. There is no evidence available, so it would be misleading to label it true or false.";
-  return <div className="border-t pt-12" aria-live="polite">
+  return (
+  <div
+    className="cinematic-result border-t pt-12"
+    aria-live="polite"
+  >
     <p className="eyebrow text-primary">VERIFICATION RESULT</p>
     {failed && <div role="alert" className="mt-5 text-sm text-muted-foreground"><p>Verification request failed: {outcome?.error}</p>{!sample && <p className="mt-1">No verdict was produced.</p>}</div>}
     <div className="verdict-in mt-7 grid items-end gap-8 lg:grid-cols-[1fr_auto]">
-      <h3 className={`display verdict-label ${VERDICT_TONE[verdict] ?? "text-unverified"}`}>{verdict}</h3>
+      <h3
+        className={`display verdict-label cinematic-verdict ${
+          VERDICT_TONE[verdict] ?? "text-unverified"
+        }`}
+      >
+        {verdict}
+      </h3>
       <div><p className="eyebrow">{response ? "CLAIMS CHECKED" : "CONFIDENCE"}</p><p className="display mt-3 text-7xl">{confidence}</p></div>
     </div>
     <p className="mt-6 text-sm text-muted-foreground">{note}</p>
-    <section className="result-section verdict-in"><h4 className="eyebrow">{submission.mode === "text" ? "YOUR CLAIM" : submission.mode === "url" ? "YOUR URL" : "YOUR IMAGE"}</h4><blockquote className="mt-5 whitespace-pre-wrap break-words font-serif text-3xl leading-snug md:text-4xl">{claim}</blockquote>
-      {submission.mode === "image" && submission.preview && <><img src={submission.preview} alt="Your submitted image" className="mt-6 max-h-96 w-full max-w-2xl object-contain object-left" />{submission.context && <p className="mt-5 whitespace-pre-wrap break-words text-lg">{submission.context}</p>}</>}
+    <section className="result-section verdict-in"><h4 className="eyebrow">{submission.mode === "text" ? "YOUR CLAIM" : submission.mode === "url" ? "YOUR URL" : "YOUR IMAGE"}</h4><blockquote className="mt-5 whitespace-pre-wrap wrap-break-word font-serif text-3xl leading-snug md:text-4xl">{claim}</blockquote>
+      {submission.mode === "image" && submission.preview && <><img src={submission.preview} alt="Your submitted image" className="mt-6 max-h-96 w-full max-w-2xl object-contain object-left" />{submission.context && <p className="mt-5 whitespace-pre-wrap wrap-break-words text-lg">{submission.context}</p>}</>}
     </section>
     {submission.mode === "image" && !response && <section className="result-section"><h4 className="eyebrow text-primary">IMAGE ASSESSMENT</h4><div className="mt-6 grid gap-8 md:grid-cols-2"><div><h5 className="text-lg">Claims in image</h5><p className="mt-2 font-mono text-sm text-unverified">NOT ASSESSED</p><p className="mt-3 leading-relaxed text-muted-foreground">No text extraction or evidence research has run for this image.</p></div><div><h5 className="text-lg">Authenticity & context</h5><p className="mt-2 font-mono text-sm text-unverified">NOT ASSESSED</p><p className="mt-3 leading-relaxed text-muted-foreground">Manipulation, AI generation, and original context have not been checked. Appearance alone cannot prove authenticity.</p></div></div></section>}
     {submission.mode === "url" && !response && <p className="mt-6 text-lg text-muted-foreground">The URL was accepted, but its page has not been retrieved or assessed.</p>}
     <section className="result-section verdict-in"><h4 className="eyebrow text-primary">WHY?</h4><p className="result-copy mt-5">{why}</p></section>
-    <section className="result-section"><h4 className="eyebrow text-primary">EVIDENCE <span className="ml-3 text-muted-foreground">/ {items.length.toString().padStart(2, "0")}</span></h4>
+    <section className="result-section cinematic-evidence"><h4 className="eyebrow text-primary">EVIDENCE <span className="ml-3 text-muted-foreground">/ {items.length.toString().padStart(2, "0")}</span></h4>
       {sample && <p className="mt-4 text-sm text-muted-foreground">Sample source records · titles are descriptive labels, not verified publication citations.</p>}
       <div className="mt-7">{items.map((s, i) => <article id={`evidence-${i}`} key={`${s.name}-${i}`} className={`evidence-item ${selected === i ? "selected" : ""}`}>
         <div className="flex flex-col justify-between gap-4 md:flex-row"><div><p className="eyebrow">SOURCE / 0{i + 1}</p><p className="mt-2 text-xl font-medium">{s.name}</p></div><p className={`font-mono text-sm ${s.tone}`}>{s.label}</p></div>
@@ -257,5 +297,6 @@ function Result({ claim, submission, outcome, selected, onSelect }: { claim: str
     <section className="result-section"><h4 className="eyebrow text-primary">SOURCES</h4><div className="mt-5 flex flex-col items-start gap-3">{items.map((s, i) => s.url
       ? <a key={`${s.name}-${i}`} href={s.url} target="_blank" rel="noopener noreferrer" className="text-base text-primary underline-offset-4 hover:underline" onFocus={() => onSelect(i)} onMouseEnter={() => onSelect(i)}><span className="mr-3 font-mono text-xs text-muted-foreground">0{i + 1}</span>{s.name} ↗</a>
       : <Button key={`${s.name}-${i}`} variant="link" className="h-auto whitespace-normal p-0 text-left text-base" onFocus={() => onSelect(i)} onClick={() => { onSelect(i); document.getElementById(`evidence-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}><span className="mr-3 font-mono text-xs text-muted-foreground">0{i + 1}</span>{s.name}</Button>)}</div>{!items.length && <p className="mt-5 text-lg text-muted-foreground">No sources used.</p>}</section>
-  </div>;
+  </div>
+  );
 }

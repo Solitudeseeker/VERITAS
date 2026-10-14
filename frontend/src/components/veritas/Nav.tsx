@@ -20,7 +20,11 @@ export function Nav() {
     return () => window.removeEventListener("scroll", f);
   }, []);
   return (
-    <header className={`nav fixed inset-x-0 top-0 z-50 ${scrolled || open ? "scrolled" : ""}`}>
+    <header
+  className={`nav fixed inset-x-0 top-0 z-50 ${
+    scrolled || open ? "scrolled" : ""
+  }`}
+>
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5 md:px-10">
         <Link to="/" aria-label="VERITAS home" className="flex items-center gap-2.5 font-serif text-2xl">
           <img

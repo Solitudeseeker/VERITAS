@@ -92,7 +92,17 @@ function Index() {
                 { number: "01", title: "Investigate a claim.", copy: "Text, URLs, and images. Start with a question, then follow the reasoning.", to: "/verify", label: "Verify a claim" },
                 { number: "02", title: "Understand the process.", copy: "Five deliberate steps from a statement to a transparent explanation.", to: "/how-it-works", label: "How it works" },
                 { number: "03", title: "Explore the record.", copy: "Trace agreement, contradiction, and context through the sample source network.", to: "/evidence", label: "Evidence & sources" },
-              ].map((item) => <article key={item.number} className="reveal border-t pt-6"><p className="eyebrow text-primary">{item.number}</p><h2 className="mt-5 font-serif text-4xl">{item.title}</h2><p className="mt-5 max-w-sm leading-relaxed text-muted-foreground">{item.copy}</p><Button asChild variant="link" className="mt-7 h-auto whitespace-normal p-0 text-left"><Link to={item.to as "/verify" | "/how-it-works" | "/evidence"}>{item.label} →</Link></Button></article>)}
+              ].map((item) => <article
+  key={item.number}
+  className="interactive-card reveal border-t p-5 pt-6"
+  style={{ transitionDelay: `${Number(item.number) * 80}ms` }}
+><p className="eyebrow text-primary flex items-center gap-3">
+  <span className="interactive-icon inline-flex">
+    {item.number}
+  </span>
+  <span className="h-px flex-1 bg-border" />
+  <span className="text-muted-foreground">EXPLORE</span>
+</p><h2 className="mt-5 font-serif text-4xl">{item.title}</h2><p className="mt-5 max-w-sm leading-relaxed text-muted-foreground">{item.copy}</p><Button asChild variant="link" className="mt-7 h-auto whitespace-normal p-0 text-left"><Link to={item.to as "/verify" | "/how-it-works" | "/evidence"}>{item.label} →</Link></Button></article>)}
             </div>
           </div>
         </section>
